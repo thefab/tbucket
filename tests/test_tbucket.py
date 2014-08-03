@@ -6,6 +6,7 @@ from tornado.httpclient import HTTPRequest
 
 from tbucket.main import get_app as tbucket_get_app
 from tbucket.model import TemporaryBucketManager
+from support import test_redis_or_raise_skiptest
 
 
 class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
@@ -86,4 +87,5 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
 class TBucketRedisTestCase(TBucketTestCase):
 
     def setUp(self):
+        test_redis_or_raise_skiptest()
         super(TBucketRedisTestCase, self).setUp(storage_method="redis")
