@@ -12,7 +12,7 @@ DEFAULT_DAEMON_PORT = 8888
 DEFAULT_GC_INTERVAL = 20
 DEFAULT_STORAGE_METHOD = "stringio"
 DEFAULT_LIFETIME = 60
-DEFAULT_READ_PAGE_SIZE = 8192
+DEFAULT_READ_PAGE_SIZE = 67108864
 DEFAULT_REDIS_HOST = "localhost"
 DEFAULT_REDIS_PORT = 6379
 DEFAULT_REDIS_PASSWORD = None
@@ -43,8 +43,8 @@ define("default_lifetime", default=DEFAULT_LIFETIME, type=int,
        help="default lifetime (in seconds)", group="tbucket")
 
 define("read_page_size", default=DEFAULT_READ_PAGE_SIZE, type=int,
-       metavar="PAGE_SIZE",
-       help="default page size (in bytes)", group="tbucket")
+       metavar="READ_PAGE_SIZE",
+       help="default read page size (in bytes)", group="tbucket")
 
 define("redis_host", default=DEFAULT_REDIS_HOST, type=str,
        metavar="REDIS_HOST",
