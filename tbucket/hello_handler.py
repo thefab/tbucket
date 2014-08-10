@@ -14,6 +14,4 @@ class HelloHandler(tornado.web.RequestHandler):
         '''
         @summary: deals with GET request on /
         '''
-        print "%s://%s%s" % (self.request.protocol, self.request.host,
-                             self.request.uri)
         self.write('Welcome on tbucket daemon !')

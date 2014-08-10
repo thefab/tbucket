@@ -13,12 +13,13 @@ import tornado.ioloop
 import tornado.web
 import tornado.gen
 from tornado.httpserver import HTTPServer
-from tornado.options import options as tornado_options
+import tornado.options
 
 from tbucket.hello_handler import HelloHandler
 from tbucket.tobjects_handler import TObjectsHandler
 from tbucket.tobject_handler import TObjectHandler
 from tbucket.model import TObjectManager
+from tbucket.config import Config
 import tbucket
 
 
@@ -52,13 +53,13 @@ def get_app():
     return application
 
 
-def get_ioloop(gc_interval):
+def get_ioloop():
     '''
     @summary: returns a configured tornado ioloop
     '''
     iol = tornado.ioloop.IOLoop.instance()
     callback = tornado.ioloop.PeriodicCallback(garbage_collection,
-                                               gc_interval * 1000,
+                                               Config.gc_interval * 1000,
                                                iol)
     callback.start()
     return iol
@@ -98,19 +99,11 @@ def main(start_ioloop=True, parse_cli=True):
     '''
     if parse_cli:
         tornado.options.parse_command_line()
-    options = {
-        "storage_method": tornado_options.storage_method,
-        "daemon_port": tornado_options.port,
-        "gc_interval": tornado_options.gc_interval,
-        "default_lifetime": tornado_options.default_lifetime,
-        "storage_module_name": tornado_options.storage_module_name,
-        "page_size": tornado_options.page_size
-    }
-    TObjectManager.make_instance(**options)
+    TObjectManager.make_instance()
     application = get_app()
     server = HTTPServer(application)
-    server.listen(options['daemon_port'])
-    iol = get_ioloop(options['gc_interval'])
+    server.listen(Config.port)
+    iol = get_ioloop()
     iol.add_callback(log_is_ready)
     signal.signal(signal.SIGTERM,
                   lambda s, f: sigterm_handler(server, iol, s, f))

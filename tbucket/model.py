@@ -9,9 +9,9 @@ import importlib
 from datetime import datetime
 from datetime import timedelta
 import tornado.gen
-from tornado.options import options as tornado_options
 
 from tbucket.storage import TObjectStorageFactory
+from tbucket.config import Config
 
 
 class TObject(object):
@@ -68,7 +68,7 @@ class TObjectManager(object):
         return TObjectManager.__instance
 
     @staticmethod
-    def make_instance(storage_method=tornado_options.storage_method, **kwargs):
+    def make_instance(storage_method=Config.storage_method, **kwargs):
         if TObjectManager.__instance is not None:
             raise Exception("TObjectManager is alreay initialized")
         obj = TObjectManager(storage_method, **kwargs)
@@ -86,7 +86,7 @@ class TObjectManager(object):
         self.__tbuckets = {}
         obj = self._make_storage_factory_instance(storage_method, **kwargs)
         self.__storage_factory = obj
-        self.page_size = kwargs.get("page_size", tornado_options.page_size)
+        self.page_size = kwargs.get("page_size", Config.page_size)
 
     def destroy(self):
         self._destroy_storage_factory_instance()
@@ -155,7 +155,7 @@ class TObjectManager(object):
     def _destroy_storage_factory_instance(self):
         self.__storage_factory.destroy_instance()
 
-    def make_bucket(self, lifetime=tornado_options.default_lifetime,
+    def make_bucket(self, lifetime=Config.default_lifetime,
                     content_type=None):
         storage_object = self.__storage_factory.make_storage_object()
         obj = TObject(storage_object, lifetime, content_type)
