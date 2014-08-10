@@ -9,7 +9,7 @@ import tornado.gen
 from tornado.ioloop import IOLoop
 
 from tbucket.storage import TObjectStorage
-from tbucket.storage import TObjectStorageFactory
+from tbucket.storage import TObjectStorageFactory, StorageException
 from tbucket.config import Config
 
 REDIS_TOBJECT_STORAGE_NAME = "redis"
@@ -32,15 +32,23 @@ class RedisTObjectStorage(TObjectStorage):
 
     @tornado.gen.coroutine
     def append(self, strg):
-        # FIXME: storageexception
         key = self._get_redis_key()
-        yield tornado.gen.Task(self.__client.append, key, strg)
+        try:
+            res = yield tornado.gen.Task(self.__client.append, key, strg)
+        except Exception, e:
+            raise StorageException(e.message)
+        if not isinstance(res, (int, long)):
+            raise StorageException("redis append didn't return an int")
 
     @tornado.gen.coroutine
     def destroy(self):
-        # FIXME: storageexception
         key = self._get_redis_key()
-        yield tornado.gen.Task(self.__client.delete, key)
+        try:
+            res = yield tornado.gen.Task(self.__client.delete, key)
+        except Exception, e:
+            raise StorageException(e.message)
+        if not isinstance(res, (int, long)):
+            raise StorageException("redis append didn't return an int")
 
     @tornado.gen.coroutine
     def seek0(self):
@@ -48,15 +56,19 @@ class RedisTObjectStorage(TObjectStorage):
 
     @tornado.gen.coroutine
     def read(self, size=-1):
-        # FIXME: storageexception
         key = self._get_redis_key()
         maximum = -1
         if size != -1:
             maximum = self.pointer + size - 1
-        tmp = yield tornado.gen.Task(self.__client.getrange, key,
-                                     self.pointer, maximum)
-        self.pointer = self.pointer + len(tmp)
-        raise tornado.gen.Return(tmp)
+        try:
+            res = yield tornado.gen.Task(self.__client.getrange, key,
+                                         self.pointer, maximum)
+        except Exception, e:
+            raise StorageException(e.message)
+        if not isinstance(res, (int, long)):
+            raise StorageException("redis getrange didn't return a string")
+        self.pointer = self.pointer + len(res)
+        raise tornado.gen.Return(res)
 
 
 class RedisTObjectStorageFactory(TObjectStorageFactory):
@@ -69,22 +81,26 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
         return REDIS_TOBJECT_STORAGE_NAME
 
     def __init__(self):
-        # FIXME: storageexception
         super(TObjectStorageFactory, self).__init__()
         host = Config.redis_host
         self.prefix = Config.redis_prefix
         port = Config.redis_port
         socket_path = Config.redis_unix_socket_path
         password = Config.redis_password
-        self.__client = tornadoredis.Client(host=host, port=port,
-                                            unix_socket_path=socket_path,
-                                            password=password)
-        self.__client.connect()
+        try:
+            self.__client = tornadoredis.Client(host=host, port=port,
+                                                unix_socket_path=socket_path,
+                                                password=password)
+            self.__client.connect()
+        except Exception, e:
+            raise StorageException(e.message)
 
     def destroy(self):
-        # FIXME: storageexception
         if self.__client is not None:
-            IOLoop.instance().run_sync(self.__client.disconnect)
+            try:
+                IOLoop.instance().run_sync(self.__client.disconnect)
+            except Exception, e:
+                raise StorageException(e.message)
             self.__client = None
 
     def make_storage_object(self):
