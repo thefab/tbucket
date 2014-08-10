@@ -6,15 +6,15 @@
 
 import tornado.web
 import tornado.gen
-from tbucket.model import TemporaryBucketManager
+from tbucket.model import TObjectManager
 
 
-class TBucketHandler(tornado.web.RequestHandler):
+class TObjectHandler(tornado.web.RequestHandler):
 
     manager = None
 
     def initialize(self, *args, **kwargs):
-        self.manager = TemporaryBucketManager.get_instance()
+        self.manager = TObjectManager.get_instance()
 
     def get_bucket_or_raise_404(self, uid):
         tbucket = self.manager.get_bucket_by_uid(uid)

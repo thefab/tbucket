@@ -11,12 +11,10 @@ from datetime import timedelta
 import tornado.gen
 from tornado.options import options as tornado_options
 
-import tbucket
-from tbucket.storage import TemporaryBucketStorageFactory
+from tbucket.storage import TObjectStorageFactory
 
 
-class TemporaryBucket(object):
-    """Class which describe and store a temporary bucket"""
+class TObject(object):
 
     uid = None
     lifetime = None
@@ -56,7 +54,7 @@ class TemporaryBucket(object):
         raise tornado.gen.Return(tmp)
 
 
-class TemporaryBucketManager(object):
+class TObjectManager(object):
 
     __instance = None
     __tbuckets = None
@@ -65,24 +63,24 @@ class TemporaryBucketManager(object):
 
     @staticmethod
     def get_instance():
-        if TemporaryBucketManager.__instance is None:
-            raise Exception("TemporaryBucketManager is not initialized")
-        return TemporaryBucketManager.__instance
+        if TObjectManager.__instance is None:
+            raise Exception("TObjectManager is not initialized")
+        return TObjectManager.__instance
 
     @staticmethod
     def make_instance(storage_method=tornado_options.storage_method, **kwargs):
-        if TemporaryBucketManager.__instance is not None:
-            raise Exception("TemporaryBucketManager is alreay initialized")
-        obj = TemporaryBucketManager(storage_method, **kwargs)
-        TemporaryBucketManager.__instance = obj
+        if TObjectManager.__instance is not None:
+            raise Exception("TObjectManager is alreay initialized")
+        obj = TObjectManager(storage_method, **kwargs)
+        TObjectManager.__instance = obj
         return obj
 
     @staticmethod
     def destroy_instance():
-        if TemporaryBucketManager.__instance is None:
-            raise Exception("TemporaryBucketManager is alreay deleted")
-        TemporaryBucketManager.__instance.destroy()
-        TemporaryBucketManager.__instance = None
+        if TObjectManager.__instance is None:
+            raise Exception("TObjectManager is alreay deleted")
+        TObjectManager.__instance.destroy()
+        TObjectManager.__instance = None
 
     def __init__(self, storage_method, **kwargs):
         self.__tbuckets = {}
@@ -141,7 +139,7 @@ class TemporaryBucketManager(object):
             importlib.import_module(module_name)
         except ImportError:
             pass
-        for cls in TemporaryBucketStorageFactory.__subclasses__():
+        for cls in TObjectStorageFactory.__subclasses__():
             try:
                 if cls.get_name() == name:
                     return cls
@@ -160,5 +158,5 @@ class TemporaryBucketManager(object):
     def make_bucket(self, lifetime=tornado_options.default_lifetime,
                     content_type=None):
         storage_object = self.__storage_factory.make_storage_object()
-        obj = TemporaryBucket(storage_object, lifetime, content_type)
+        obj = TObject(storage_object, lifetime, content_type)
         return obj

@@ -16,9 +16,9 @@ from tornado.httpserver import HTTPServer
 from tornado.options import options as tornado_options
 
 from tbucket.hello_handler import HelloHandler
-from tbucket.tbuckets_handler import TBucketsHandler
-from tbucket.tbucket_handler import TBucketHandler
-from tbucket.model import TemporaryBucketManager
+from tbucket.tobjects_handler import TObjectsHandler
+from tbucket.tobject_handler import TObjectHandler
+from tbucket.model import TObjectManager
 import tbucket
 
 
@@ -30,7 +30,7 @@ def garbage_collection():
     It's used for garbage collection
     '''
     logging.debug("Starting garbage collection...")
-    n = yield TemporaryBucketManager.get_instance().garbage_collect()
+    n = yield TObjectManager.get_instance().garbage_collect()
     logging.debug("%i records garbage collected", n)
 
 
@@ -43,9 +43,9 @@ def get_app():
     url_list = [
         tornado.web.URLSpec(r"/", HelloHandler,
                             name=tbucket.ROOT_URL_SPEC_NAME),
-        tornado.web.URLSpec(r"/tbuckets", TBucketsHandler,
+        tornado.web.URLSpec(r"/tbucket/objects", TObjectsHandler,
                             name=tbucket.TBUCKETS_URL_SPEC_NAME),
-        tornado.web.URLSpec(r"/tbuckets/(\w+)", TBucketHandler,
+        tornado.web.URLSpec(r"/tbucket/objects/(\w+)", TObjectHandler,
                             name=tbucket.TBUCKET_URL_SPEC_NAME),
     ]
     application = tornado.web.Application(url_list)
@@ -106,7 +106,7 @@ def main(start_ioloop=True, parse_cli=True):
         "storage_module_name": tornado_options.storage_module_name,
         "page_size": tornado_options.page_size
     }
-    TemporaryBucketManager.make_instance(**options)
+    TObjectManager.make_instance(**options)
     application = get_app()
     server = HTTPServer(application)
     server.listen(options['daemon_port'])
@@ -119,7 +119,7 @@ def main(start_ioloop=True, parse_cli=True):
             iol.start()
         except KeyboardInterrupt:
             stop_server(server, None)
-        TemporaryBucketManager.destroy_instance()
+        TObjectManager.destroy_instance()
         logging.info("tbucket daemon is stopped !")
 
 

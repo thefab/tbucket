@@ -7,7 +7,7 @@
 import tornado.gen
 
 
-class TemporaryBucketStorage(object):
+class TObjectStorage(object):
 
     uid = None
 
@@ -35,7 +35,7 @@ class TemporaryBucketStorage(object):
         raise NotImplemented()
 
 
-class TemporaryBucketStorageFactory(object):
+class TObjectStorageFactory(object):
 
     __instance = None
 
@@ -45,13 +45,13 @@ class TemporaryBucketStorageFactory(object):
     @classmethod
     def get_instance(cls):
         if cls.__instance is None:
-            raise Exception("TemporaryBucketStorageFactory is not initialized")
+            raise Exception("TObjectStorageFactory is not initialized")
         return cls.__instance
 
     @classmethod
     def make_instance(cls, **kwargs):
         if cls.__instance is not None:
-            raise Exception("TemporaryBucketStorageFactory is already "
+            raise Exception("TObjectStorageFactory is already "
                             "initialized")
         obj = cls(**kwargs)
         obj.init(**kwargs)
@@ -61,7 +61,7 @@ class TemporaryBucketStorageFactory(object):
     @classmethod
     def destroy_instance(cls):
         if cls.__instance is None:
-            raise Exception("TemporaryBucketStorageFactory is already "
+            raise Exception("TObjectStorageFactory is already "
                             "deleted")
         cls.__instance.destroy()
         cls.__instance = None

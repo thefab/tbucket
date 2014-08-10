@@ -5,7 +5,7 @@ import tornado.testing
 from tornado.httpclient import HTTPRequest
 
 from tbucket.main import get_app as tbucket_get_app
-from tbucket.model import TemporaryBucketManager
+from tbucket.model import TObjectManager
 from support import test_redis_or_raise_skiptest
 
 
@@ -19,8 +19,8 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def setUp(self, storage_method="stringio"):
         super(TBucketTestCase, self).setUp()
-        TemporaryBucketManager.make_instance(storage_method=storage_method)
-        req = HTTPRequest(self.get_url("/tbuckets"), method="POST",
+        TObjectManager.make_instance(storage_method=storage_method)
+        req = HTTPRequest(self.get_url("/tbucket/objects"), method="POST",
                           body=self.body)
         self.http_client.fetch(req, self.stop)
         response = self.wait()
@@ -30,11 +30,11 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         self.bucket_url = location
 
     def tearDown(self):
-        req = HTTPRequest(self.get_url("/tbuckets"), method="DELETE")
+        req = HTTPRequest(self.get_url("/tbucket/objects"), method="DELETE")
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 204)
-        TemporaryBucketManager.destroy_instance()
+        TObjectManager.destroy_instance()
         super(TBucketTestCase, self).tearDown()
 
     def test_delete(self):

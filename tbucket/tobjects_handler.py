@@ -10,19 +10,19 @@ from tornado.web import stream_request_body
 from tornado.web import HTTPError
 
 import tbucket
-from tbucket.model import TemporaryBucketManager
+from tbucket.model import TObjectManager
 from tbucket.utils import get_base_url_from_request
 
 
 @stream_request_body
-class TBucketsHandler(tornado.web.RequestHandler):
+class TObjectsHandler(tornado.web.RequestHandler):
     """Class which handles the /tbuckets URL"""
 
     manager = None
     bucket = None
 
     def initialize(self, *args, **kwargs):
-        self.manager = TemporaryBucketManager.get_instance()
+        self.manager = TObjectManager.get_instance()
 
     @tornado.gen.coroutine
     def post(self):

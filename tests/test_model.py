@@ -3,7 +3,7 @@
 
 import tornado.testing
 
-from tbucket.model import TemporaryBucketManager
+from tbucket.model import TObjectManager
 from tbucket.main import get_app as tbucket_get_app
 
 
@@ -16,10 +16,10 @@ class ModelTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def setUp(self):
         super(ModelTestCase, self).setUp()
-        self.manager = TemporaryBucketManager.make_instance()
+        self.manager = TObjectManager.make_instance()
 
     def tearDown(self):
-        TemporaryBucketManager.destroy_instance()
+        TObjectManager.destroy_instance()
         super(ModelTestCase, self).tearDown()
 
     @tornado.testing.gen_test

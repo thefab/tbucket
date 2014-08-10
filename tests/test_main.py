@@ -8,7 +8,7 @@ from tornado import gen
 from tornado.ioloop import IOLoop
 
 from tbucket.main import get_app as tbucket_get_app
-from tbucket.model import TemporaryBucketManager
+from tbucket.model import TObjectManager
 from tbucket.main import main, get_ioloop
 
 
@@ -22,7 +22,7 @@ class MainTestCase(tornado.testing.AsyncHTTPTestCase):
         self.port = tornado.testing.bind_unused_port()
 
     def tearDown(self):
-        TemporaryBucketManager.destroy_instance()
+        TObjectManager.destroy_instance()
         super(MainTestCase, self).tearDown()
 
     def get_new_ioloop(self):

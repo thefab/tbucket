@@ -10,18 +10,18 @@ except:
     from StringIO import StringIO
 import tornado.gen
 
-from tbucket.storage import TemporaryBucketStorage
-from tbucket.storage import TemporaryBucketStorageFactory
+from tbucket.storage import TObjectStorage
+from tbucket.storage import TObjectStorageFactory
 
-STRINGIO_TEMPORARY_BUCKET_STORAGE_NAME = "stringio"
+STRINGIO_TOBJECT_STORAGE_NAME = "stringio"
 
 
-class StringIOTemporaryBucketStorage(TemporaryBucketStorage):
+class StringIOTObjectStorage(TObjectStorage):
 
     __sio = None
 
     def __init__(self):
-        TemporaryBucketStorage.__init__(self)
+        TObjectStorage.__init__(self)
         self.__sio = StringIO()
 
     @tornado.gen.coroutine
@@ -45,11 +45,11 @@ class StringIOTemporaryBucketStorage(TemporaryBucketStorage):
         raise tornado.gen.Return(tmp)
 
 
-class StringIOTemporaryBucketStorageFactory(TemporaryBucketStorageFactory):
+class StringIOTObjectStorageFactory(TObjectStorageFactory):
 
     @staticmethod
     def get_name():
-        return STRINGIO_TEMPORARY_BUCKET_STORAGE_NAME
+        return STRINGIO_TOBJECT_STORAGE_NAME
 
     def init(self, **kwargs):
         pass
@@ -58,4 +58,4 @@ class StringIOTemporaryBucketStorageFactory(TemporaryBucketStorageFactory):
         pass
 
     def make_storage_object(self):
-        return StringIOTemporaryBucketStorage()
+        return StringIOTObjectStorage()

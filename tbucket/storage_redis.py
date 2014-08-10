@@ -8,20 +8,20 @@ import tornadoredis
 import tornado.gen
 from tornado.ioloop import IOLoop
 
-from tbucket.storage import TemporaryBucketStorage
-from tbucket.storage import TemporaryBucketStorageFactory
+from tbucket.storage import TObjectStorage
+from tbucket.storage import TObjectStorageFactory
 
-REDIS_TEMPORARY_BUCKET_STORAGE_NAME = "redis"
+REDIS_TOBJECT_STORAGE_NAME = "redis"
 
 
-class RedisTemporaryBucketStorage(TemporaryBucketStorage):
+class RedisTObjectStorage(TObjectStorage):
 
     __client = None
     prefix = None
     pointer = None
 
     def __init__(self, client, prefix):
-        TemporaryBucketStorage.__init__(self)
+        TObjectStorage.__init__(self)
         self.__client = client
         self.prefix = prefix
         self.pointer = 0
@@ -59,14 +59,14 @@ class RedisTemporaryBucketStorage(TemporaryBucketStorage):
         raise tornado.gen.Return(tmp)
 
 
-class RedisTemporaryBucketStorageFactory(TemporaryBucketStorageFactory):
+class RedisTObjectStorageFactory(TObjectStorageFactory):
 
     __client = None
     prefix = None
 
     @staticmethod
     def get_name():
-        return REDIS_TEMPORARY_BUCKET_STORAGE_NAME
+        return REDIS_TOBJECT_STORAGE_NAME
 
     def init(self, **kwargs):
         host = kwargs.get('redis_host', 'localhost')
@@ -85,4 +85,4 @@ class RedisTemporaryBucketStorageFactory(TemporaryBucketStorageFactory):
         IOLoop.instance().run_sync(self.__client.disconnect)
 
     def make_storage_object(self):
-        return RedisTemporaryBucketStorage(self.__client, self.prefix)
+        return RedisTObjectStorage(self.__client, self.prefix)
