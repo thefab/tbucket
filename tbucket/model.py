@@ -35,13 +35,11 @@ class TObject(object):
 
     @tornado.gen.coroutine
     def append(self, strg):
-        tmp = yield self.__storage.append(strg)
-        raise tornado.gen.Return(tmp)
+        yield self.__storage.append(strg)
 
     @tornado.gen.coroutine
     def seek0(self):
-        tmp = yield self.__storage.seek0()
-        raise tornado.gen.Return(tmp)
+        yield self.__storage.seek0()
 
     @tornado.gen.coroutine
     def read(self, size=-1):
@@ -50,8 +48,7 @@ class TObject(object):
 
     @tornado.gen.coroutine
     def destroy(self):
-        tmp = yield self.__storage.destroy()
-        raise tornado.gen.Return(tmp)
+        yield self.__storage.destroy()
 
     @tornado.gen.coroutine
     def flush(self):
@@ -111,22 +108,19 @@ class TObjectManager(object):
     @tornado.gen.coroutine
     def _remove_multiple_buckets_and_free_them(self, tbuckets_to_clean):
         yield [self.remove_bucket_and_free_it(x) for x in tbuckets_to_clean]
-        raise tornado.gen.Return(len(tbuckets_to_clean))
 
     @tornado.gen.coroutine
     def garbage_collect(self):
         tbuckets_to_clean = [x for x in self.__tbuckets.values()
                              if not x.is_valid()]
-        future = self._remove_multiple_buckets_and_free_them(tbuckets_to_clean)
-        tmp = yield future
-        raise tornado.gen.Return(tmp)
+        yield self._remove_multiple_buckets_and_free_them(tbuckets_to_clean)
+        raise tornado.gen.Return(len(tbuckets_to_clean))
 
     @tornado.gen.coroutine
     def purge(self):
         tbuckets_to_clean = [x for x in self.__tbuckets.values()]
-        future = self._remove_multiple_buckets_and_free_them(tbuckets_to_clean)
-        tmp = yield future
-        raise tornado.gen.Return(tmp)
+        yield self._remove_multiple_buckets_and_free_them(tbuckets_to_clean)
+        raise tornado.gen.Return(len(tbuckets_to_clean))
 
     def _get_storage_factory_class(self, name, module_name=None):
         try:
