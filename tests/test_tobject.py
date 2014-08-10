@@ -4,6 +4,7 @@
 import tornado.testing
 from tornado.httpclient import HTTPRequest
 
+import tbucket
 from tbucket.main import get_app as tbucket_get_app
 from tbucket.model import TObjectManager
 from tbucket.config import Config
@@ -21,8 +22,11 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
     def setUp(self, storage_method="stringio"):
         super(TBucketTestCase, self).setUp()
         Config.storage_method = storage_method
+        headers = {}
+        headers[tbucket.TBUCKET_LIFETIME_HEADER] = "3600"
+        headers["%sFooBar" % tbucket.TBUCKET_EXTRA_HEADER_PREFIX] = "foobar"
         req = HTTPRequest(self.get_url("/tbucket/objects"), method="POST",
-                          body=self.body)
+                          body=self.body, headers=headers)
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 201)
@@ -60,6 +64,9 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         response = self.wait()
         self.assertEqual(response.code, 200)
         self.assertEqual(self.body, response.body)
+        headers = response.headers
+        self.assertTrue("FooBar" in headers)
+        self.assertEquals(headers["FooBar"], "foobar")
 
     def test_get_autodelete1(self):
         req = HTTPRequest(self.bucket_url + "?autodelete=1", method="GET")

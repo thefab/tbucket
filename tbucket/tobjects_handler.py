@@ -12,6 +12,7 @@ from tornado.web import HTTPError
 import tbucket
 from tbucket.model import TObjectManager
 from tbucket.utils import get_base_url_from_request
+from tbucket.config import Config
 
 
 @stream_request_body
@@ -51,11 +52,13 @@ class TObjectsHandler(tornado.web.RequestHandler):
         except ValueError:
             raise tornado.web.HTTPError(status_code=400)
 
-    def _get_requested_content_type(self):
-        tmp = self.request.headers.get(tbucket.TBUCKET_CONTENT_TYPE_HEADER)
-        if tmp is None:
-            return None
-        return tmp.strip()
+    def _get_requested_extra_headers(self):
+        out = {}
+        for key, value in self.request.headers.items():
+            if key.startswith(tbucket.TBUCKET_EXTRA_HEADER_PREFIX):
+                new_key = key[len(tbucket.TBUCKET_EXTRA_HEADER_PREFIX):]
+                out[new_key] = value
+        return out
 
     def prepare(self):
         if self.request.method == 'POST':
@@ -70,12 +73,11 @@ class TObjectsHandler(tornado.web.RequestHandler):
 
     def prepare_post_request(self):
         lifetime = self._get_requested_lifetime()
-        content_type = self._get_requested_content_type()
+        extra_headers = self._get_requested_extra_headers()
         if lifetime is None:
-            self.bucket = self.manager.make_bucket(content_type=content_type)
-        else:
-            self.bucket = self.manager.make_bucket(lifetime=lifetime,
-                                                   content_type=content_type)
+            lifetime = Config.default_lifetime
+        self.bucket = self.manager.make_bucket(lifetime=lifetime,
+                                               extra_headers=extra_headers)
 
     @tornado.gen.coroutine
     def data_received(self, data):

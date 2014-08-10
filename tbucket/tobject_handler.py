@@ -28,8 +28,8 @@ class TObjectHandler(tornado.web.RequestHandler):
         tbucket = self.get_bucket_or_raise_404(uid)
         yield tbucket.seek0()
         self.set_status(200)
-        if tbucket.content_type is not None:
-            self.set_header('Content-Type', tbucket.content_type)
+        for name, value in tbucket.extra_headers.items():
+            self.set_header(name, value)
         while True:
             tmp = yield tbucket.read(page_size)
             if tmp == "":

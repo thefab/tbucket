@@ -14,14 +14,14 @@ Please read the [README.md](README.md) first (specifically the concepts section)
 
     Optional headers:
 
-    X-TBucket-Lifetime: 3600
+    X-Tbucket-Lifetime: 3600
     (overrides the default lifetime (in seconds) for this object)
 
-    X-TBucket-Header-Content-Type: image/png
+    X-Tbucket-Header-Content-Type: image/png
     (when the object will be requested, insert "Content-Type: image/png" header
      in response)
 
-    X-TBucket-Header-X-YourApplicationLogic: foobar
+    X-Tbucket-Header-X-YourApplicationLogic: foobar
     (when the object will be requested, insert "X-YourApplicationLogic: foobar"
      header in reponse, same than previous example, just to show that 
      you can set any header)
@@ -76,7 +76,7 @@ idempotent anymore.
     Body: the content of the object
     
     Note: if you have set specific headers during the store request using
-    X-TBucket-Header-{header_name}: {header_value} syntax, you will get
+    X-Tbucket-Header-{header_name}: {header_value} syntax, you will get
     
     {header_name}: {header_value} in this GET response
 

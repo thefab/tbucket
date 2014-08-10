@@ -4,6 +4,7 @@
 import tornado.testing
 from tornado.httpclient import HTTPRequest
 
+import tbucket
 from tbucket.main import get_app as tbucket_get_app
 from tbucket.model import TObjectManager
 from tbucket.config import Config
@@ -34,8 +35,11 @@ class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def test_post(self):
         body = "foobar"
+        headers = {}
+        headers[tbucket.TBUCKET_LIFETIME_HEADER] = "3600"
+        headers["%sFooBar" % tbucket.TBUCKET_EXTRA_HEADER_PREFIX] = "foobar"
         req = HTTPRequest(self.get_url("/tbucket/objects"), method="POST",
-                          body=body)
+                          body=body, headers=headers)
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 201)

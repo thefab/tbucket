@@ -18,17 +18,17 @@ class TObject(object):
 
     uid = None
     lifetime = None
-    content_type = None
+    extra_headers = None
     expired_datetime = None
     __storage = None
 
-    def __init__(self, storage, lifetime, content_type):
+    def __init__(self, storage, lifetime, extra_headers={}):
         self.uid = uuid.uuid4().hex
         self.__storage = storage
         self.__storage.uid = self.uid
         ts = datetime.now() + timedelta(seconds=lifetime)
         self.expired_datetime = ts
-        self.content_type = content_type
+        self.extra_headers = extra_headers
 
     def is_valid(self):
         return (datetime.now() <= self.expired_datetime)
@@ -148,7 +148,7 @@ class TObjectManager(object):
         self.__storage_factory.destroy_instance()
 
     def make_bucket(self, lifetime=Config.default_lifetime,
-                    content_type=None):
+                    extra_headers={}):
         storage_object = self.__storage_factory.make_storage_object()
-        obj = TObject(storage_object, lifetime, content_type)
+        obj = TObject(storage_object, lifetime, extra_headers)
         return obj
