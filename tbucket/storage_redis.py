@@ -65,7 +65,7 @@ class RedisTObjectStorage(TObjectStorage):
                                          self.pointer, maximum)
         except Exception, e:
             raise StorageException(e.message)
-        if not isinstance(res, (int, long)):
+        if not isinstance(res, basestring):
             raise StorageException("redis getrange didn't return a string")
         self.pointer = self.pointer + len(res)
         raise tornado.gen.Return(res)

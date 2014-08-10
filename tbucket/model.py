@@ -74,9 +74,9 @@ class TObjectManager(object):
         TObjectManager.__instance.destroy()
         TObjectManager.__instance = None
 
-    def __init__(self, storage_method=Config.storage_method):
+    def __init__(self):
         self.__tbuckets = {}
-        obj = self._make_storage_factory_instance(storage_method)
+        obj = self._make_storage_factory_instance(Config.storage_method)
         self.__storage_factory = obj
         self.page_size = Config.page_size
 

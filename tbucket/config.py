@@ -13,6 +13,11 @@ DEFAULT_GC_INTERVAL = 20
 DEFAULT_STORAGE_METHOD = "stringio"
 DEFAULT_LIFETIME = 60
 DEFAULT_PAGE_SIZE = 8192
+DEFAULT_REDIS_HOST = "localhost"
+DEFAULT_REDIS_PORT = 6379
+DEFAULT_REDIS_PASSWORD = None
+DEFAULT_REDIS_UNIX_SOCKET_PATH = None
+DEFAULT_REDIS_PREFIX = "tbucket:"
 
 define("port", default=DEFAULT_DAEMON_PORT, type=int,
        metavar="PORT",
@@ -40,6 +45,26 @@ define("default_lifetime", default=DEFAULT_LIFETIME, type=int,
 define("page_size", default=DEFAULT_PAGE_SIZE, type=int,
        metavar="PAGE_SIZE",
        help="default page size (in bytes)", group="tbucket")
+
+define("redis_host", default=DEFAULT_REDIS_HOST, type=str,
+       metavar="REDIS_HOST",
+       help="redis host", group="tbucket_redis")
+
+define("redis_port", default=DEFAULT_REDIS_PORT, type=int,
+       metavar="REDIS_PORT",
+       help="redis port", group="tbucket_redis")
+
+define("redis_password", default=DEFAULT_REDIS_PASSWORD, type=str,
+       metavar="REDIS_PASSWORD",
+       help="redis port", group="tbucket_redis")
+
+define("redis_unix_socket_path", default=DEFAULT_REDIS_UNIX_SOCKET_PATH,
+       type=str, metavar="REDIS_UNIX_SOCKET_PATH",
+       help="redis socket path", group="tbucket_redis")
+
+define("redis_prefix", default=DEFAULT_REDIS_PREFIX,
+       type=str, metavar="REDIS_PREFIX",
+       help="redis socket path", group="tbucket_redis")
 
 
 class ConfigMetaclass(type):
