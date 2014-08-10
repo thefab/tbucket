@@ -11,7 +11,7 @@ class TObjectStorage(object):
 
     uid = None
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         pass
 
     @tornado.gen.coroutine
@@ -39,35 +39,21 @@ class TObjectStorageFactory(object):
 
     __instance = None
 
-    def __init__(self, **kwargs):
-        pass
+    def __del__(self):
+        self.destroy()
 
     @classmethod
     def get_instance(cls):
         if cls.__instance is None:
-            raise Exception("TObjectStorageFactory is not initialized")
+            cls.__instance = cls()
         return cls.__instance
-
-    @classmethod
-    def make_instance(cls, **kwargs):
-        if cls.__instance is not None:
-            raise Exception("TObjectStorageFactory is already "
-                            "initialized")
-        obj = cls(**kwargs)
-        obj.init(**kwargs)
-        cls.__instance = obj
-        return obj
 
     @classmethod
     def destroy_instance(cls):
         if cls.__instance is None:
-            raise Exception("TObjectStorageFactory is already "
-                            "deleted")
+            return
         cls.__instance.destroy()
         cls.__instance = None
-
-    def init(self, **kwargs):
-        raise NotImplemented()
 
     def destroy(self):
         raise NotImplemented()

@@ -99,7 +99,6 @@ def main(start_ioloop=True, parse_cli=True):
     '''
     if parse_cli:
         tornado.options.parse_command_line()
-    TObjectManager.make_instance()
     application = get_app()
     server = HTTPServer(application)
     server.listen(Config.port)

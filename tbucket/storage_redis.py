@@ -10,6 +10,7 @@ from tornado.ioloop import IOLoop
 
 from tbucket.storage import TObjectStorage
 from tbucket.storage import TObjectStorageFactory
+from tbucket.config import Config
 
 REDIS_TOBJECT_STORAGE_NAME = "redis"
 
@@ -68,21 +69,22 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
     def get_name():
         return REDIS_TOBJECT_STORAGE_NAME
 
-    def init(self, **kwargs):
-        host = kwargs.get('redis_host', 'localhost')
-        self.prefix = kwargs.get('redis_prefix', 'tbuckets:')
-        port = kwargs.get('redis_port', 6379)
-        socket_path = kwargs.get('redis_unix_socket_path', None)
-        password = kwargs.get('redis_password', None)
-        selected_db = kwargs.get('redis_selected_db', None)
+    def __init__(self):
+        super(TObjectStorageFactory, self).__init__()
+        host = Config.redis_host
+        self.prefix = Config.redis_prefix
+        port = Config.redis_port
+        socket_path = Config.redis_unix_socket_path
+        password = Config.redis_password
         self.__client = tornadoredis.Client(host=host, port=port,
                                             unix_socket_path=socket_path,
-                                            password=password,
-                                            selected_db=selected_db)
+                                            password=password)
         self.__client.connect()
 
     def destroy(self):
-        IOLoop.instance().run_sync(self.__client.disconnect)
+        if self.__client is not None:
+            IOLoop.instance().run_sync(self.__client.disconnect)
+        self.__client = None
 
     def make_storage_object(self):
         return RedisTObjectStorage(self.__client, self.prefix)

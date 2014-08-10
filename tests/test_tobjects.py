@@ -6,6 +6,8 @@ from tornado.httpclient import HTTPRequest
 
 from tbucket.main import get_app as tbucket_get_app
 from tbucket.model import TObjectManager
+from tbucket.config import Config
+
 from support import test_redis_or_raise_skiptest
 
 
@@ -16,7 +18,7 @@ class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def setUp(self, storage_method="stringio"):
         super(TBucketsTestCase, self).setUp()
-        TObjectManager.make_instance(storage_method=storage_method)
+        Config.storage_method = storage_method
 
     def tearDown(self):
         req = HTTPRequest(self.get_url("/tbucket/objects"), method="DELETE")

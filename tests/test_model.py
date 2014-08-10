@@ -16,7 +16,7 @@ class ModelTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def setUp(self):
         super(ModelTestCase, self).setUp()
-        self.manager = TObjectManager.make_instance()
+        self.manager = TObjectManager.get_instance()
 
     def tearDown(self):
         TObjectManager.destroy_instance()

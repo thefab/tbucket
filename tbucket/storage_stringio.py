@@ -51,9 +51,6 @@ class StringIOTObjectStorageFactory(TObjectStorageFactory):
     def get_name():
         return STRINGIO_TOBJECT_STORAGE_NAME
 
-    def init(self, **kwargs):
-        pass
-
     def destroy(self):
         pass
 

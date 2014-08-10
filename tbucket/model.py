@@ -64,29 +64,21 @@ class TObjectManager(object):
     @staticmethod
     def get_instance():
         if TObjectManager.__instance is None:
-            raise Exception("TObjectManager is not initialized")
+            TObjectManager.__instance = TObjectManager()
         return TObjectManager.__instance
-
-    @staticmethod
-    def make_instance(storage_method=Config.storage_method, **kwargs):
-        if TObjectManager.__instance is not None:
-            raise Exception("TObjectManager is alreay initialized")
-        obj = TObjectManager(storage_method, **kwargs)
-        TObjectManager.__instance = obj
-        return obj
 
     @staticmethod
     def destroy_instance():
         if TObjectManager.__instance is None:
-            raise Exception("TObjectManager is alreay deleted")
+            return
         TObjectManager.__instance.destroy()
         TObjectManager.__instance = None
 
-    def __init__(self, storage_method, **kwargs):
+    def __init__(self, storage_method=Config.storage_method):
         self.__tbuckets = {}
-        obj = self._make_storage_factory_instance(storage_method, **kwargs)
+        obj = self._make_storage_factory_instance(storage_method)
         self.__storage_factory = obj
-        self.page_size = kwargs.get("page_size", Config.page_size)
+        self.page_size = Config.page_size
 
     def destroy(self):
         self._destroy_storage_factory_instance()
@@ -147,10 +139,10 @@ class TObjectManager(object):
                 pass
         raise Exception("not found storage method : %s" % name)
 
-    def _make_storage_factory_instance(self, name, **kwargs):
-        module_name = kwargs.get("storage_module_name", None)
+    def _make_storage_factory_instance(self, name):
+        module_name = Config.storage_module_name
         cls = self._get_storage_factory_class(name, module_name)
-        return cls.make_instance(**kwargs)
+        return cls.get_instance()
 
     def _destroy_storage_factory_instance(self):
         self.__storage_factory.destroy_instance()
