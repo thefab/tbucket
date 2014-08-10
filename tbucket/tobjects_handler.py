@@ -27,7 +27,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
 
     @tornado.gen.coroutine
     def post(self):
-        yield self.bucket.seek0()
+        yield self.bucket.flush()
         self.manager.add_bucket(self.bucket)
         self.set_status(201)
         base_url = get_base_url_from_request(self.request)

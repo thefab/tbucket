@@ -53,6 +53,10 @@ class TObject(object):
         tmp = yield self.__storage.destroy()
         raise tornado.gen.Return(tmp)
 
+    @tornado.gen.coroutine
+    def flush(self):
+        yield self.__storage.flush()
+
 
 class TObjectManager(object):
 

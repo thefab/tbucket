@@ -58,6 +58,10 @@ class StringIOTObjectStorage(TObjectStorage):
             raise StorageException(e.message)
         raise tornado.gen.Return(tmp)
 
+    @tornado.gen.coroutine
+    def flush(self):
+        pass
+
 
 class StringIOTObjectStorageFactory(TObjectStorageFactory):
 

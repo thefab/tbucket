@@ -59,6 +59,21 @@ class TObjectStorage(object):
         raise NotImplemented()
 
     @tornado.gen.coroutine
+    def flush(self):
+        """Closes the storage for writing.
+
+        After this call, the instance is not writable anymore.
+
+        It's a coroutine decorated generator. So, don't block the event loop
+        inside this function. If you have some blocking calls to do, use
+        tornado async operations inside.
+
+        Raises:
+            StorageException: an error occured at the storage level.
+        """
+        raise NotImplemented()
+
+    @tornado.gen.coroutine
     def seek0(self):
         """Sets the read pointer to the start of the body.
 

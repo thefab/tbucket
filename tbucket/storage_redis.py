@@ -55,6 +55,10 @@ class RedisTObjectStorage(TObjectStorage):
         self.pointer = 0
 
     @tornado.gen.coroutine
+    def flush(self):
+        pass
+
+    @tornado.gen.coroutine
     def read(self, size=-1):
         key = self._get_redis_key()
         maximum = -1
