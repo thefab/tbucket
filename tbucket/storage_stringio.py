@@ -11,12 +11,15 @@ except:
 import tornado.gen
 
 from tbucket.storage import TObjectStorage
+from tbucket.storage import StorageException
 from tbucket.storage import TObjectStorageFactory
 
 STRINGIO_TOBJECT_STORAGE_NAME = "stringio"
 
 
 class StringIOTObjectStorage(TObjectStorage):
+    """Class to store the body of a transient object in a (c)StringIO object
+    """
 
     __sio = None
 
@@ -26,22 +29,33 @@ class StringIOTObjectStorage(TObjectStorage):
 
     @tornado.gen.coroutine
     def append(self, strg):
-        tmp = self.__sio.write(strg)
-        raise tornado.gen.Return(tmp)
+        try:
+            self.__sio.write(strg)
+        except Exception, e:
+            raise StorageException(e.message)
 
     @tornado.gen.coroutine
     def destroy(self):
-        tmp = self.__sio.close()
-        raise tornado.gen.Return(tmp)
+        if self.__sio is not None:
+            try:
+                self.__sio.close()
+            except Exception, e:
+                raise StorageException(e.message)
+            self.__sio = None
 
     @tornado.gen.coroutine
     def seek0(self):
-        tmp = self.__sio.seek(0)
-        raise tornado.gen.Return(tmp)
+        try:
+            self.__sio.seek(0)
+        except Exception, e:
+            raise StorageException(e.message)
 
     @tornado.gen.coroutine
     def read(self, size=-1):
-        tmp = self.__sio.read(size)
+        try:
+            tmp = self.__sio.read(size)
+        except Exception, e:
+            raise StorageException(e.message)
         raise tornado.gen.Return(tmp)
 
 

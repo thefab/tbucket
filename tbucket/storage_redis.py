@@ -32,30 +32,29 @@ class RedisTObjectStorage(TObjectStorage):
 
     @tornado.gen.coroutine
     def append(self, strg):
+        # FIXME: storageexception
         key = self._get_redis_key()
-        tmp = yield tornado.gen.Task(self.__client.append, key, strg)
-        raise tornado.gen.Return(tmp)
+        yield tornado.gen.Task(self.__client.append, key, strg)
 
     @tornado.gen.coroutine
     def destroy(self):
+        # FIXME: storageexception
         key = self._get_redis_key()
-        tmp = yield tornado.gen.Task(self.__client.delete, key)
-        raise tornado.gen.Return(tmp)
+        yield tornado.gen.Task(self.__client.delete, key)
 
     @tornado.gen.coroutine
     def seek0(self):
         self.pointer = 0
-        raise tornado.gen.Return(True)
 
     @tornado.gen.coroutine
     def read(self, size=-1):
+        # FIXME: storageexception
         key = self._get_redis_key()
-        if size == -1:
-            tmp = yield tornado.gen.Task(self.__client.getrange, key,
-                                         self.pointer, -1)
-        else:
-            tmp = yield tornado.gen.Task(self.__client.getrange, key,
-                                         self.pointer, self.pointer + size - 1)
+        maximum = -1
+        if size != -1:
+            maximum = self.pointer + size - 1
+        tmp = yield tornado.gen.Task(self.__client.getrange, key,
+                                     self.pointer, maximum)
         self.pointer = self.pointer + len(tmp)
         raise tornado.gen.Return(tmp)
 
@@ -70,6 +69,7 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
         return REDIS_TOBJECT_STORAGE_NAME
 
     def __init__(self):
+        # FIXME: storageexception
         super(TObjectStorageFactory, self).__init__()
         host = Config.redis_host
         self.prefix = Config.redis_prefix
@@ -82,9 +82,10 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
         self.__client.connect()
 
     def destroy(self):
+        # FIXME: storageexception
         if self.__client is not None:
             IOLoop.instance().run_sync(self.__client.disconnect)
-        self.__client = None
+            self.__client = None
 
     def make_storage_object(self):
         return RedisTObjectStorage(self.__client, self.prefix)
