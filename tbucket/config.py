@@ -44,20 +44,29 @@ define("page_size", default=DEFAULT_PAGE_SIZE, type=int,
 
 class ConfigMetaclass(type):
 
-    __dict = {}
+    overrided_options = {}
 
     def __getattr__(self, name):
         if name.startswith('__'):
+            # because problems with nosetests ?
             return
-        if name in self.__dict:
-            return self.__dict[name]
+        if name in self.overrided_options:
+            return self.overrided_options[name]
         if name in tornado.options.options:
             return tornado.options.options[name]
-        raise Exception("unknown option: %s" % name)
+        raise AttributeError("unknown option: %s" % name)
 
     def __setattr__(self, name, value):
-        self.__dict[name] = value
+        self.overrided_options[name] = value
+
+    def reset(self):
+        try:
+            while True:
+                self.overrided_options.popitem()
+        except KeyError:
+            pass
 
 
 class Config(object):
+
     __metaclass__ = ConfigMetaclass
