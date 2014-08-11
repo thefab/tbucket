@@ -6,7 +6,9 @@
 
 import tornado.web
 import tornado.gen
+
 from tbucket.model import TObjectManager
+from tbucket.config import Config
 
 
 class TObjectHandler(tornado.web.RequestHandler):
@@ -24,14 +26,13 @@ class TObjectHandler(tornado.web.RequestHandler):
 
     @tornado.gen.coroutine
     def get(self, uid):
-        page_size = self.manager.page_size
         tbucket = self.get_bucket_or_raise_404(uid)
         yield tbucket.seek0()
         self.set_status(200)
         for name, value in tbucket.extra_headers.items():
             self.set_header(name, value)
         while True:
-            tmp = yield tbucket.read(page_size)
+            tmp = yield tbucket.read(Config.read_page_size)
             if tmp == "":
                 break
             self.write(tmp)

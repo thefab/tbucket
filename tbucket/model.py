@@ -60,7 +60,6 @@ class TObjectManager(object):
     __instance = None
     __tbuckets = None
     __storage_factory = None
-    page_size = None
 
     @staticmethod
     def get_instance():
@@ -79,7 +78,6 @@ class TObjectManager(object):
         self.__tbuckets = {}
         obj = self._make_storage_factory_instance(Config.storage_method)
         self.__storage_factory = obj
-        self.page_size = Config.page_size
 
     def destroy(self):
         self._destroy_storage_factory_instance()
