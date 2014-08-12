@@ -106,6 +106,9 @@ class TObjectStorage(object):
         inside this function. If you have some blocking calls to do, use
         tornado async operations inside.
 
+        Args:
+            size (int): maximum size to read (-1 => no limit)
+
         Raises:
             tornado.gen.Return: because of tornado.gen.couroutine decorator,
                 this exception is raised to return read bytes.
