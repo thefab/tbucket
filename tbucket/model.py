@@ -4,7 +4,6 @@
 # This file is part of tbucket daemon released under the MIT license.
 # See the LICENSE file for more information.
 
-import uuid
 import importlib
 from datetime import datetime
 from datetime import timedelta
@@ -12,6 +11,7 @@ import tornado.gen
 
 from tbucket.storage import TObjectStorageFactory
 from tbucket.config import Config
+from tbucket.utils import make_uid
 
 
 class TObject(object):
@@ -22,10 +22,9 @@ class TObject(object):
     expired_datetime = None
     __storage = None
 
-    def __init__(self, storage, lifetime, extra_headers={}):
-        self.uid = uuid.uuid4().hex
+    def __init__(self, uid, storage, lifetime, extra_headers={}):
+        self.uid = uid
         self.__storage = storage
-        self.__storage.uid = self.uid
         ts = datetime.now() + timedelta(seconds=lifetime)
         self.expired_datetime = ts
         self.extra_headers = extra_headers
@@ -145,6 +144,7 @@ class TObjectManager(object):
 
     def make_bucket(self, lifetime=Config.default_lifetime,
                     extra_headers={}):
-        storage_object = self.__storage_factory.make_storage_object()
-        obj = TObject(storage_object, lifetime, extra_headers)
+        uid = make_uid()
+        storage_object = self.__storage_factory.make_storage_object(uid)
+        obj = TObject(uid, storage_object, lifetime, extra_headers)
         return obj

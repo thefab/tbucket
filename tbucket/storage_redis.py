@@ -21,8 +21,8 @@ class RedisTObjectStorage(TObjectStorage):
     prefix = None
     pointer = None
 
-    def __init__(self, client, prefix):
-        TObjectStorage.__init__(self)
+    def __init__(self, uid, client, prefix):
+        TObjectStorage.__init__(self, uid)
         self.__client = client
         self.prefix = prefix
         self.pointer = 0
@@ -107,5 +107,5 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
                 raise StorageException(e.message)
             self.__client = None
 
-    def make_storage_object(self):
-        return RedisTObjectStorage(self.__client, self.prefix)
+    def make_storage_object(self, uid):
+        return RedisTObjectStorage(uid, self.__client, self.prefix)

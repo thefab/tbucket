@@ -23,8 +23,8 @@ class StringIOTObjectStorage(TObjectStorage):
 
     __sio = None
 
-    def __init__(self):
-        TObjectStorage.__init__(self)
+    def __init__(self, uid):
+        TObjectStorage.__init__(self, uid)
         self.__sio = StringIO()
 
     @tornado.gen.coroutine
@@ -72,5 +72,5 @@ class StringIOTObjectStorageFactory(TObjectStorageFactory):
     def destroy(self):
         pass
 
-    def make_storage_object(self):
-        return StringIOTObjectStorage()
+    def make_storage_object(self, uid):
+        return StringIOTObjectStorage(uid)
