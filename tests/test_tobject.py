@@ -58,33 +58,42 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         response = self.wait()
         self.assertEqual(response.code, 404)
 
-    def test_get(self):
+    def test_get(self, test_empty_body=False):
         req = HTTPRequest(self.bucket_url, method="GET")
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 200)
-        self.assertEqual(self.body, response.body)
+        if test_empty_body:
+            self.assertEqual("", response.body)
+        else:
+            self.assertEqual(self.body, response.body)
         headers = response.headers
         self.assertTrue("FooBar" in headers)
         self.assertEquals(headers["FooBar"], "foobar")
 
-    def test_get_autodelete1(self):
+    def test_get_autodelete1(self, test_empty_body=False):
         req = HTTPRequest(self.bucket_url + "?autodelete=1", method="GET")
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 200)
-        self.assertEqual(self.body, response.body)
+        if test_empty_body:
+            self.assertEqual("", response.body)
+        else:
+            self.assertEqual(self.body, response.body)
         req = HTTPRequest(self.bucket_url, method="GET")
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 404)
 
-    def test_get_autodelete0(self):
+    def test_get_autodelete0(self, test_empty_body=False):
         req = HTTPRequest(self.bucket_url + "?autodelete=0", method="GET")
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 200)
-        self.assertEqual(self.body, response.body)
+        if test_empty_body:
+            self.assertEqual("", response.body)
+        else:
+            self.assertEqual(self.body, response.body)
         req = HTTPRequest(self.bucket_url, method="GET")
         self.http_client.fetch(req, self.stop)
         response = self.wait()
@@ -97,3 +106,18 @@ class TBucketRedisTestCase(TBucketTestCase):
     def setUp(self):
         test_redis_or_raise_skiptest()
         super(TBucketRedisTestCase, self).setUp(storage_method="redis")
+
+
+class TBucketDummyTestCase(TBucketTestCase):
+
+    def setUp(self):
+        super(TBucketDummyTestCase, self).setUp(storage_method="dummy")
+
+    def test_get(self):
+        super(TBucketDummyTestCase, self).test_get(test_empty_body=True)
+
+    def test_get_autodelete1(self):
+        pass
+
+    def test_get_autodelete0(self):
+        pass

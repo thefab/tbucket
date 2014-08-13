@@ -52,3 +52,9 @@ class TBucketsRedisTestCase(TBucketsTestCase):
     def setUp(self):
         test_redis_or_raise_skiptest()
         super(TBucketsRedisTestCase, self).setUp(storage_method="redis")
+
+
+class TBucketsDummyTestCase(TBucketsTestCase):
+
+    def setUp(self):
+        super(TBucketsDummyTestCase, self).setUp(storage_method="dummy")
