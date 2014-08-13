@@ -13,6 +13,7 @@ DEFAULT_GC_INTERVAL = 20
 DEFAULT_STORAGE_METHOD = "stringio"
 DEFAULT_LIFETIME = 60
 DEFAULT_READ_PAGE_SIZE = 131072
+DEFAULT_WRITE_PAGE_SIZE = 1310720
 DEFAULT_REDIS_HOST = "localhost"
 DEFAULT_REDIS_PORT = 6379
 DEFAULT_REDIS_PASSWORD = None
@@ -45,6 +46,10 @@ define("default_lifetime", default=DEFAULT_LIFETIME, type=int,
 define("read_page_size", default=DEFAULT_READ_PAGE_SIZE, type=int,
        metavar="READ_PAGE_SIZE",
        help="default read page size (in bytes)", group="tbucket")
+
+define("write_page_size", default=DEFAULT_WRITE_PAGE_SIZE, type=int,
+       metavar="WRITE_PAGE_SIZE",
+       help="default write page size (in bytes)", group="tbucket")
 
 define("redis_host", default=DEFAULT_REDIS_HOST, type=str,
        metavar="REDIS_HOST",
