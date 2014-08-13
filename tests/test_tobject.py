@@ -8,13 +8,13 @@ import tbucket
 from tbucket.main import get_app as tbucket_get_app
 from tbucket.model import TObjectManager
 from tbucket.config import Config
-from support import test_redis_or_raise_skiptest
+from support import test_redis_or_raise_skiptest, make_random_body
 
 
 class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
 
     bucket_url = None
-    body = "foobar" * 100000
+    body = make_random_body(1000000)
 
     def get_app(self):
         return tbucket_get_app()

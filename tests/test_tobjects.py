@@ -9,7 +9,7 @@ from tbucket.main import get_app as tbucket_get_app
 from tbucket.model import TObjectManager
 from tbucket.config import Config
 
-from support import test_redis_or_raise_skiptest
+from support import test_redis_or_raise_skiptest, make_random_body
 
 
 class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
@@ -34,7 +34,7 @@ class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
         self.assertTrue(str1 in str2)
 
     def test_post(self):
-        body = "foobar"
+        body = make_random_body(1000000)
         headers = {}
         headers[tbucket.TBUCKET_LIFETIME_HEADER] = "3600"
         headers["%sFooBar" % tbucket.TBUCKET_EXTRA_HEADER_PREFIX] = "foobar"
