@@ -20,13 +20,22 @@ class TObjectsHandler(tornado.web.RequestHandler):
     """Class which handles the /tbuckets URL"""
 
     manager = None
+    write_page_size = None
     bucket = None
+    parts = None
+    buffer_length = None
+    __buffer = None
 
     def initialize(self, *args, **kwargs):
         self.manager = TObjectManager.get_instance()
+        self.parts = []
+        self.buffer_length = 0
+        self.write_page_size = Config.write_page_size
 
     @tornado.gen.coroutine
     def post(self):
+        if self.buffer_length > 0:
+            yield self._data_flush()
         yield self.bucket.flush()
         self.manager.add_bucket(self.bucket)
         self.set_status(201)
@@ -80,6 +89,16 @@ class TObjectsHandler(tornado.web.RequestHandler):
                                                extra_headers=extra_headers)
 
     @tornado.gen.coroutine
+    def _data_flush(self):
+        yield self.bucket.append("".join(self.parts))
+        self.parts = []
+        self.buffer_length = 0
+
+    @tornado.gen.coroutine
     def data_received(self, data):
         if self.request.method == 'POST':
-            yield self.bucket.append(data)
+            data_len = len(data)
+            self.parts.append(data)
+            self.buffer_length = self.buffer_length + data_len
+            if self.buffer_length >= self.write_page_size:
+                yield self._data_flush()
