@@ -5,6 +5,7 @@
 # See the LICENSE file for more information.
 
 from tornado.options import define
+from six import add_metaclass
 import tornado.options
 
 
@@ -97,6 +98,7 @@ class ConfigMetaclass(type):
             pass
 
 
+@add_metaclass(ConfigMetaclass)
 class Config(object):
 
-    __metaclass__ = ConfigMetaclass
+    pass
