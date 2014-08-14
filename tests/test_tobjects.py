@@ -36,8 +36,8 @@ class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
     def test_post(self):
         body = make_random_body(1000000)
         headers = {}
-        headers[tbucket.TBUCKET_LIFETIME_HEADER] = "3600"
-        headers["%sFooBar" % tbucket.TBUCKET_EXTRA_HEADER_PREFIX] = "foobar"
+        headers[tbucket.LIFETIME_HEADER] = "3600"
+        headers["%sFooBar" % tbucket.EXTRA_HEADER_PREFIX] = "foobar"
         req = HTTPRequest(self.get_url("/tbucket/objects"), method="POST",
                           body=body, headers=headers)
         self.http_client.fetch(req, self.stop)

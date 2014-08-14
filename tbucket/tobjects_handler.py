@@ -17,11 +17,10 @@ from tbucket.config import Config
 
 @stream_request_body
 class TObjectsHandler(tornado.web.RequestHandler):
-    """Class which handles the /tbuckets URL"""
 
     manager = None
     write_page_size = None
-    bucket = None
+    tobject = None
     parts = None
     buffer_length = None
     __buffer = None
@@ -36,14 +35,14 @@ class TObjectsHandler(tornado.web.RequestHandler):
     def post(self):
         if self.buffer_length > 0:
             yield self._data_flush()
-        yield self.bucket.flush()
-        self.manager.add_bucket(self.bucket)
+        yield self.tobject.flush()
+        self.manager.add_object(self.tobject)
         self.set_status(201)
         base_url = get_base_url_from_request(self.request)
-        bucket_path = self.reverse_url(tbucket.TBUCKET_URL_SPEC_NAME,
-                                       self.bucket.uid)
-        bucket_url = "%s%s" % (base_url, bucket_path)
-        self.add_header('Location', bucket_url)
+        tobject_path = self.reverse_url(tbucket.TOBJECT_URL_SPEC_NAME,
+                                        self.tobject.uid)
+        tobject_url = "%s%s" % (base_url, tobject_path)
+        self.add_header('Location', tobject_url)
         self.finish()
 
     @tornado.gen.coroutine
@@ -53,7 +52,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
         self.finish()
 
     def _get_requested_lifetime(self):
-        tmp = self.request.headers.get(tbucket.TBUCKET_LIFETIME_HEADER, None)
+        tmp = self.request.headers.get(tbucket.LIFETIME_HEADER, None)
         if tmp is None:
             return None
         try:
@@ -64,8 +63,8 @@ class TObjectsHandler(tornado.web.RequestHandler):
     def _get_requested_extra_headers(self):
         out = {}
         for key, value in self.request.headers.items():
-            if key.startswith(tbucket.TBUCKET_EXTRA_HEADER_PREFIX):
-                new_key = key[len(tbucket.TBUCKET_EXTRA_HEADER_PREFIX):]
+            if key.startswith(tbucket.EXTRA_HEADER_PREFIX):
+                new_key = key[len(tbucket.EXTRA_HEADER_PREFIX):]
                 out[new_key] = value
         return out
 
@@ -85,12 +84,12 @@ class TObjectsHandler(tornado.web.RequestHandler):
         extra_headers = self._get_requested_extra_headers()
         if lifetime is None:
             lifetime = Config.default_lifetime
-        self.bucket = self.manager.make_bucket(lifetime=lifetime,
-                                               extra_headers=extra_headers)
+        self.tobject = self.manager.make_object(lifetime=lifetime,
+                                                extra_headers=extra_headers)
 
     @tornado.gen.coroutine
     def _data_flush(self):
-        yield self.bucket.append("".join(self.parts))
+        yield self.tobject.append("".join(self.parts))
         self.parts = []
         self.buffer_length = 0
 

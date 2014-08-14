@@ -24,24 +24,24 @@ class ModelTestCase(tornado.testing.AsyncHTTPTestCase):
 
     @tornado.testing.gen_test
     def test_bucket_init(self):
-        t = self.manager.make_bucket()
+        t = self.manager.make_object()
         self.assertTrue(len(t.uid) == 32)
         self.assertTrue(t.is_valid())
         yield t.destroy()
 
     def test_bucket_is_valid1(self):
-        t = self.manager.make_bucket()
+        t = self.manager.make_object()
         self.assertTrue(t.is_valid())
         t.destroy()
 
     def test_bucket_is_valid2(self):
-        t = self.manager.make_bucket(lifetime=-10)
+        t = self.manager.make_object(lifetime=-10)
         self.assertFalse(t.is_valid())
         t.destroy()
 
     @tornado.testing.gen_test
     def test_bucket_append(self):
-        t = self.manager.make_bucket()
+        t = self.manager.make_object()
         yield t.append("foo")
         yield t.append("bar")
         yield t.seek0()

@@ -45,9 +45,9 @@ def get_app():
         tornado.web.URLSpec(r"/", HelloHandler,
                             name=tbucket.ROOT_URL_SPEC_NAME),
         tornado.web.URLSpec(r"/tbucket/objects", TObjectsHandler,
-                            name=tbucket.TBUCKETS_URL_SPEC_NAME),
+                            name=tbucket.TOBJECTS_URL_SPEC_NAME),
         tornado.web.URLSpec(r"/tbucket/objects/(\w+)", TObjectHandler,
-                            name=tbucket.TBUCKET_URL_SPEC_NAME),
+                            name=tbucket.TOBJECT_URL_SPEC_NAME),
     ]
     application = tornado.web.Application(url_list)
     return application

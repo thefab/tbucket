@@ -57,7 +57,7 @@ class TObject(object):
 class TObjectManager(object):
 
     __instance = None
-    __tbuckets = None
+    __tobjects = None
     __storage_factory = None
 
     @staticmethod
@@ -74,50 +74,50 @@ class TObjectManager(object):
         TObjectManager.__instance = None
 
     def __init__(self):
-        self.__tbuckets = {}
+        self.__tobjects = {}
         obj = self._make_storage_factory_instance(Config.storage_method)
         self.__storage_factory = obj
 
     def destroy(self):
         self._destroy_storage_factory_instance()
 
-    def add_bucket(self, tbucket):
-        self.__tbuckets[tbucket.uid] = tbucket
+    def add_object(self, tobject):
+        self.__tobjects[tobject.uid] = tobject
 
-    def get_bucket_by_uid(self, uid):
-        tbucket = self.__tbuckets.get(uid, None)
-        if tbucket is not None:
-            if tbucket.is_valid():
-                return tbucket
+    def get_object_by_uid(self, uid):
+        tobject = self.__tobjects.get(uid, None)
+        if tobject is not None:
+            if tobject.is_valid():
+                return tobject
         return None
 
     @tornado.gen.coroutine
-    def remove_bucket_and_free_it(self, tbucket):
-        tmp = self.__tbuckets.pop(tbucket.uid, None)
+    def remove_object_and_free_it(self, tobject):
+        tmp = self.__tobjects.pop(tobject.uid, None)
         if tmp is not None:
-            if tmp is not tbucket:
+            if tmp is not tobject:
                 raise Exception("same uid for two different"
-                                "tbucket instances ?")
+                                "tobject instances ?")
             else:
                 yield tmp.destroy()
         raise tornado.gen.Return(tmp is not None)
 
     @tornado.gen.coroutine
-    def _remove_multiple_buckets_and_free_them(self, tbuckets_to_clean):
-        yield [self.remove_bucket_and_free_it(x) for x in tbuckets_to_clean]
+    def _remove_multiple_objects_and_free_them(self, tobjects_to_clean):
+        yield [self.remove_object_and_free_it(x) for x in tobjects_to_clean]
 
     @tornado.gen.coroutine
     def garbage_collect(self):
-        tbuckets_to_clean = [x for x in self.__tbuckets.values()
+        tobjects_to_clean = [x for x in self.__tobjects.values()
                              if not x.is_valid()]
-        yield self._remove_multiple_buckets_and_free_them(tbuckets_to_clean)
-        raise tornado.gen.Return(len(tbuckets_to_clean))
+        yield self._remove_multiple_objects_and_free_them(tobjects_to_clean)
+        raise tornado.gen.Return(len(tobjects_to_clean))
 
     @tornado.gen.coroutine
     def purge(self):
-        tbuckets_to_clean = [x for x in self.__tbuckets.values()]
-        yield self._remove_multiple_buckets_and_free_them(tbuckets_to_clean)
-        raise tornado.gen.Return(len(tbuckets_to_clean))
+        tobjects_to_clean = [x for x in self.__tobjects.values()]
+        yield self._remove_multiple_objects_and_free_them(tobjects_to_clean)
+        raise tornado.gen.Return(len(tobjects_to_clean))
 
     def _get_storage_factory_class(self, name, module_name=None):
         try:
@@ -142,7 +142,7 @@ class TObjectManager(object):
     def _destroy_storage_factory_instance(self):
         self.__storage_factory.destroy_instance()
 
-    def make_bucket(self, lifetime=Config.default_lifetime,
+    def make_object(self, lifetime=Config.default_lifetime,
                     extra_headers={}):
         uid = make_uid()
         storage_object = self.__storage_factory.make_storage_object(uid)
