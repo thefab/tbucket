@@ -42,9 +42,9 @@ class ModelTestCase(tornado.testing.AsyncHTTPTestCase):
     @tornado.testing.gen_test
     def test_bucket_append(self):
         t = self.manager.make_object()
-        yield t.append("foo")
-        yield t.append("bar")
+        yield t.append(b"foo")
+        yield t.append(b"bar")
         yield t.seek0()
         output = yield t.read()
-        self.assertEquals(output, "foobar")
+        self.assertEquals(output, b"foobar")
         yield t.destroy()
