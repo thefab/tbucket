@@ -5,6 +5,7 @@ import socket
 import unittest
 import string
 import random
+from six.moves import xrange
 
 
 def test_redis_or_raise_skiptest(host="localhost", port=6379):
@@ -17,6 +18,6 @@ def test_redis_or_raise_skiptest(host="localhost", port=6379):
 
 
 def make_random_body(size):
-    body = "".join([random.choice(string.letters)
+    body = "".join([random.choice(string.ascii_letters)
                     for i in xrange(0, size)])
     return body

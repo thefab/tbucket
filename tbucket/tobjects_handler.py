@@ -89,7 +89,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
 
     @tornado.gen.coroutine
     def _data_flush(self):
-        yield self.tobject.append("".join(self.parts))
+        yield self.tobject.append(b"".join(self.parts))
         self.parts = []
         self.buffer_length = 0
 
