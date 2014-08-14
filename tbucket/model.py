@@ -120,12 +120,9 @@ class TObjectManager(object):
         raise tornado.gen.Return(len(tobjects_to_clean))
 
     def _get_storage_factory_class(self, name, module_name=None):
-        try:
-            if module_name is None:
-                module_name = "tbucket.storage_%s" % name
-            importlib.import_module(module_name)
-        except ImportError:
-            pass
+        if module_name is None:
+            module_name = "tbucket.storage_%s" % name
+        importlib.import_module(module_name)
         for cls in TObjectStorageFactory.__subclasses__():
             try:
                 if cls.get_name() == name:
