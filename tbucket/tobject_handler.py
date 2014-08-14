@@ -33,7 +33,7 @@ class TObjectHandler(tornado.web.RequestHandler):
             self.set_header(name, value)
         while True:
             tmp = yield tobject.read(Config.read_page_size)
-            if tmp == "":
+            if len(tmp) == 0:
                 break
             self.write(tmp)
             yield self.flush()

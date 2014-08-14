@@ -14,12 +14,12 @@ from support import test_redis_or_raise_skiptest, make_random_body
 class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
 
     bucket_url = None
-    body = make_random_body(1000000)
+    body = make_random_body(10)
 
     def get_app(self):
         return tbucket_get_app()
 
-    def setUp(self, storage_method="stringio"):
+    def setUp(self, storage_method="bytesio"):
         super(TBucketTestCase, self).setUp()
         Config.storage_method = storage_method
         headers = {}
@@ -64,7 +64,7 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         response = self.wait()
         self.assertEqual(response.code, 200)
         if test_empty_body:
-            self.assertEqual("", response.body)
+            self.assertEqual(b"", response.body)
         else:
             self.assertEqual(self.body, response.body)
         headers = response.headers
@@ -77,7 +77,7 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         response = self.wait()
         self.assertEqual(response.code, 200)
         if test_empty_body:
-            self.assertEqual("", response.body)
+            self.assertEqual(b"", response.body)
         else:
             self.assertEqual(self.body, response.body)
         req = HTTPRequest(self.bucket_url, method="GET")
@@ -91,7 +91,7 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         response = self.wait()
         self.assertEqual(response.code, 200)
         if test_empty_body:
-            self.assertEqual("", response.body)
+            self.assertEqual(b"", response.body)
         else:
             self.assertEqual(self.body, response.body)
         req = HTTPRequest(self.bucket_url, method="GET")

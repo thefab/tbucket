@@ -11,7 +11,7 @@ import tornado.options
 
 DEFAULT_DAEMON_PORT = 8888
 DEFAULT_GC_INTERVAL = 20
-DEFAULT_STORAGE_METHOD = "stringio"
+DEFAULT_STORAGE_METHOD = "bytesio"
 DEFAULT_LIFETIME = 60
 DEFAULT_READ_PAGE_SIZE = 131072
 DEFAULT_WRITE_PAGE_SIZE = 1310720
@@ -37,7 +37,7 @@ define("storage_method", default=DEFAULT_STORAGE_METHOD, type=str,
 define("storage_module_name", default=None, type=str,
        metavar="STORAGE_MODULE_NAME",
        help="storage module name "
-            "(ex: storage_stringio, default => auto)",
+            "(ex: storage_bytesio, default => auto)",
        group="tbucket")
 
 define("default_lifetime", default=DEFAULT_LIFETIME, type=int,
