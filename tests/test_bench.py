@@ -31,4 +31,3 @@ class BenchTestCase(tornado.testing.AsyncTestCase):
     def test_generate_10MB_body(self):
         x = tbucket.bench_generate_10MB_body()
         self.assertEqual(len(x), 10485760)
-
