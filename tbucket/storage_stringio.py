@@ -31,7 +31,7 @@ class StringIOTObjectStorage(TObjectStorage):
     def append(self, strg):
         try:
             self.__sio.write(strg)
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
 
     @tornado.gen.coroutine
@@ -39,7 +39,7 @@ class StringIOTObjectStorage(TObjectStorage):
         if self.__sio is not None:
             try:
                 self.__sio.close()
-            except Exception, e:
+            except Exception as e:
                 raise StorageException(e.message)
             self.__sio = None
 
@@ -47,14 +47,14 @@ class StringIOTObjectStorage(TObjectStorage):
     def seek0(self):
         try:
             self.__sio.seek(0)
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
 
     @tornado.gen.coroutine
     def read(self, size=-1):
         try:
             tmp = self.__sio.read(size)
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
         raise tornado.gen.Return(tmp)
 

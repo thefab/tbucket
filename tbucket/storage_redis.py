@@ -35,7 +35,7 @@ class RedisTObjectStorage(TObjectStorage):
         key = self._get_redis_key()
         try:
             res = yield tornado.gen.Task(self.__client.append, key, strg)
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
         if not isinstance(res, (int, long)):
             raise StorageException("redis append didn't return an int")
@@ -45,7 +45,7 @@ class RedisTObjectStorage(TObjectStorage):
         key = self._get_redis_key()
         try:
             res = yield tornado.gen.Task(self.__client.delete, key)
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
         if not isinstance(res, (int, long)):
             raise StorageException("redis append didn't return an int")
@@ -67,7 +67,7 @@ class RedisTObjectStorage(TObjectStorage):
         try:
             res = yield tornado.gen.Task(self.__client.getrange, key,
                                          self.pointer, maximum)
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
         if not isinstance(res, basestring):
             raise StorageException("redis getrange didn't return a string")
@@ -96,14 +96,14 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
                                                 unix_socket_path=socket_path,
                                                 password=password)
             self.__client.connect()
-        except Exception, e:
+        except Exception as e:
             raise StorageException(e.message)
 
     def destroy(self):
         if self.__client is not None:
             try:
                 IOLoop.instance().run_sync(self.__client.disconnect)
-            except Exception, e:
+            except Exception as e:
                 raise StorageException(e.message)
             self.__client = None
 
