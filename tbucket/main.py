@@ -8,7 +8,7 @@ import functools
 import logging
 import signal
 import time
-
+import re
 import tornado.ioloop
 import tornado.web
 import tornado.gen
@@ -21,6 +21,10 @@ from tbucket.tobject_handler import TObjectHandler
 from tbucket.model import TObjectManager
 from tbucket.config import Config
 import tbucket
+
+
+class CliException(Exception):
+    pass
 
 
 @tornado.gen.coroutine
@@ -93,12 +97,18 @@ def stop_loop(loop):
     logging.info("Main loop stopped !")
 
 
+def check_options():
+    if not re.match("^\w*$", Config.uid_prefix):
+        raise CliException("bad uid_prefix, must match with \w* regexp")
+
+
 def main(start_ioloop=True, parse_cli=True):
     '''
     @summary: main function (starts the daemon)
     '''
     if parse_cli:
         tornado.options.parse_command_line()
+    check_options()
     application = get_app()
     server = HTTPServer(application)
     server.listen(Config.port)

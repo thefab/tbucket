@@ -20,6 +20,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
 
     manager = None
     write_page_size = None
+    uid_prefix = None
     tobject = None
     parts = None
     buffer_length = None
@@ -30,6 +31,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
         self.parts = []
         self.buffer_length = 0
         self.write_page_size = Config.write_page_size
+        self.uid_prefix = Config.uid_prefix
 
     @tornado.gen.coroutine
     def post(self):
@@ -39,8 +41,8 @@ class TObjectsHandler(tornado.web.RequestHandler):
         self.manager.add_object(self.tobject)
         self.set_status(201)
         base_url = get_base_url_from_request(self.request)
-        tobject_path = self.reverse_url(tbucket.TOBJECT_URL_SPEC_NAME,
-                                        self.tobject.uid)
+        uid = "%s%s" % (self.uid_prefix, self.tobject.uid)
+        tobject_path = self.reverse_url(tbucket.TOBJECT_URL_SPEC_NAME, uid)
         tobject_url = "%s%s" % (base_url, tobject_path)
         self.add_header('Location', tobject_url)
         self.finish()

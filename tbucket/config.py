@@ -20,6 +20,7 @@ DEFAULT_REDIS_PORT = 6379
 DEFAULT_REDIS_PASSWORD = None
 DEFAULT_REDIS_UNIX_SOCKET_PATH = None
 DEFAULT_REDIS_PREFIX = "tbucket:"
+DEFAULT_UID_PREFIX = ""
 
 define("port", default=DEFAULT_DAEMON_PORT, type=int,
        metavar="PORT",
@@ -33,6 +34,12 @@ define("gc_interval", default=DEFAULT_GC_INTERVAL, type=int,
 define("storage_method", default=DEFAULT_STORAGE_METHOD, type=str,
        metavar="STORAGE_METHOD",
        help="storage method", group="tbucket")
+
+define("uid_prefix", default=DEFAULT_UID_PREFIX, type=str,
+       metavar="UID_PREFIX",
+       help="uid prefix for objects (useful in cluster "
+            "mode for load balancing)",
+       group="tbucket")
 
 define("storage_module_name", default=None, type=str,
        metavar="STORAGE_MODULE_NAME",

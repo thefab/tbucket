@@ -46,6 +46,19 @@ class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
         location = response.headers['Location']
         self.assertTrue(location.startswith('http://'))
 
+    def test_post_uid_prefix(self):
+        Config.uid_prefix = "foobar_"
+        body = make_random_body(10)
+        headers = {}
+        req = HTTPRequest(self.get_url("/tbucket/objects"), method="POST",
+                          body=body, headers=headers)
+        self.http_client.fetch(req, self.stop)
+        response = self.wait()
+        self.assertEqual(response.code, 201)
+        location = response.headers['Location']
+        self.assertTrue(location.startswith('http://'))
+        self.assertTrue("foobar_" in location)
+
 
 class TBucketsRedisTestCase(TBucketsTestCase):
 
