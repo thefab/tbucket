@@ -4,10 +4,9 @@
 # This file is part of tbucket daemon released under the MIT license.
 # See the LICENSE file for more information.
 
-import tornadoredis
 import tornado.gen
+import tornadis
 import six
-from tornado.ioloop import IOLoop
 
 from tbucket.storage import TObjectStorage
 from tbucket.storage import TObjectStorageFactory, StorageException
@@ -18,13 +17,13 @@ REDIS_TOBJECT_STORAGE_NAME = "redis"
 
 class RedisTObjectStorage(TObjectStorage):
 
-    __client = None
+    __pool = None
     prefix = None
     pointer = None
 
-    def __init__(self, uid, client, prefix):
+    def __init__(self, uid, pool, prefix):
         TObjectStorage.__init__(self, uid)
-        self.__client = client
+        self.__pool = pool
         self.prefix = prefix
         self.pointer = 0
 
@@ -34,22 +33,24 @@ class RedisTObjectStorage(TObjectStorage):
     @tornado.gen.coroutine
     def append(self, strg):
         key = self._get_redis_key()
-        try:
-            res = yield tornado.gen.Task(self.__client.append, key, strg)
-        except Exception as e:
-            raise StorageException(str(e))
-        if not isinstance(res, int):
-            raise StorageException("redis append didn't return an int")
+        with (yield self.__pool.connected_client()) as client:
+            try:
+                res = yield client.call("APPEND", key, strg)
+            except Exception as e:
+                raise StorageException(str(e))
+            if not isinstance(res, six.integer_types):
+                raise StorageException("redis append didn't return an int")
 
     @tornado.gen.coroutine
     def destroy(self):
         key = self._get_redis_key()
-        try:
-            res = yield tornado.gen.Task(self.__client.delete, key)
-        except Exception as e:
-            raise StorageException(str(e))
-        if not isinstance(res, int):
-            raise StorageException("redis append didn't return an int")
+        with (yield self.__pool.connected_client()) as client:
+            try:
+                res = yield client.call("DEL", key)
+            except Exception as e:
+                raise StorageException(str(e))
+            if not isinstance(res, six.integer_types):
+                raise StorageException("redis append didn't return an int")
 
     @tornado.gen.coroutine
     def seek0(self):
@@ -65,20 +66,20 @@ class RedisTObjectStorage(TObjectStorage):
         maximum = -1
         if size != -1:
             maximum = self.pointer + size - 1
-        try:
-            res = yield tornado.gen.Task(self.__client.getrange, key,
-                                         self.pointer, maximum)
-        except Exception as e:
-            raise StorageException(str(e))
-        if not isinstance(res, six.string_types):
-            raise StorageException("redis getrange didn't return a string")
+        with (yield self.__pool.connected_client()) as client:
+            try:
+                res = yield client.call("GETRANGE", key, self.pointer, maximum)
+            except Exception as e:
+                raise StorageException(str(e))
+            if not isinstance(res, six.string_types):
+                raise StorageException("redis getrange didn't return a string")
         self.pointer = self.pointer + len(res)
         raise tornado.gen.Return(res)
 
 
 class RedisTObjectStorageFactory(TObjectStorageFactory):
 
-    __client = None
+    __pool = None
     prefix = None
 
     @staticmethod
@@ -90,23 +91,18 @@ class RedisTObjectStorageFactory(TObjectStorageFactory):
         host = Config.redis_host
         self.prefix = Config.redis_prefix
         port = Config.redis_port
-        socket_path = Config.redis_unix_socket_path
-        password = Config.redis_password
         try:
-            self.__client = tornadoredis.Client(host=host, port=port,
-                                                unix_socket_path=socket_path,
-                                                password=password)
-            self.__client.connect()
+            self.__pool = tornadis.ClientPool(host=host, port=port)
         except Exception as e:
             raise StorageException(str(e))
 
     def destroy(self):
-        if self.__client is not None:
+        if self.__pool is not None:
             try:
-                IOLoop.instance().run_sync(self.__client.disconnect)
+                self.__pool.destroy()
             except Exception as e:
                 raise StorageException(str(e))
-            self.__client = None
+            self.__pool = None
 
     def make_storage_object(self, uid):
-        return RedisTObjectStorage(uid, self.__client, self.prefix)
+        return RedisTObjectStorage(uid, self.__pool, self.prefix)

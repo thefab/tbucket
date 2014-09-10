@@ -17,6 +17,9 @@ class TBucketsTestCase(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return tbucket_get_app()
 
+    def get_new_ioloop(self):
+        return tornado.ioloop.IOLoop.instance()
+
     def setUp(self, storage_method="bytesio"):
         super(TBucketsTestCase, self).setUp()
         Config.storage_method = storage_method
