@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import string
 import random
-from six.moves import xrange
+import six
 
 
 def make_random_body(size):
-    body = "".join([random.choice(string.ascii_letters)
-                    for i in xrange(0, size)])
-    return body.encode()
+    return six.b("".join(["%i" % random.randint(0, 9)
+                          for x in range(0, size)]))

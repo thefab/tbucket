@@ -5,6 +5,7 @@
 # See the LICENSE file for more information.
 
 import json
+import six
 import tornado.web
 import tornado.gen
 from tornado.web import stream_request_body
@@ -61,7 +62,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
                         pipeline.stack_call("DEL", key)
                     yield client.call(pipeline)
                 index = result[0]
-                if index == "0":
+                if index.decode() == "0":
                     break
         self.set_status(204)
         self.finish()
@@ -103,9 +104,14 @@ class TObjectsHandler(tornado.web.RequestHandler):
             lifetime = self.default_lifetime
         serialized_headers = json.dumps(extra_headers)
         self.__buffer = WriteBuffer()
-        self.__buffer.append("%i\r\n" % len(serialized_headers))
-        self.__buffer.append(serialized_headers)
-        self.__buffer.append("\r\n")
+        tmp = "%i\r\n" % len(serialized_headers)
+        if six.PY2:
+            self.__buffer.append(tmp)
+            self.__buffer.append(serialized_headers)
+        else:
+            self.__buffer.append(tmp.encode('utf-8'))
+            self.__buffer.append(serialized_headers.encode('utf-8'))
+        self.__buffer.append(b"\r\n")
 
     @tornado.gen.coroutine
     def _data_flush(self):

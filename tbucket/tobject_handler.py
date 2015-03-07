@@ -7,6 +7,7 @@
 import tornado.web
 import tornado.gen
 import json
+import six
 
 from tbucket.redis import get_redis_pool
 from tbucket.config import Config
@@ -43,12 +44,15 @@ class TObjectHandler(tornado.web.RequestHandler):
                     else:
                         break
                 if start == 0:
-                    tmp = chunk.split("\r\n", 1)
+                    tmp = chunk.split(b"\r\n", 1)
                     if len(tmp) != 2:
                         raise tornado.web.HTTPError(500)
                     headers_size = int(tmp[0])
                     headers = tmp[1][0:headers_size]
-                    decoded_headers = json.loads(headers)
+                    if six.PY2:
+                        decoded_headers = json.loads(headers)
+                    else:
+                        decoded_headers = json.loads(headers.decode())
                     for name, value in decoded_headers.items():
                         self.set_header(name, value)
                     # FIXME: minimize copy
