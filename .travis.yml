@@ -5,10 +5,9 @@ python:
     - "3.3"
     - "3.4"
 install:
-    - pip install tornado --use-mirrors
     - pip install -r test-requirements.txt --use-mirrors
     - python setup.py develop
-script: nosetests
+script: make coveralls
 notifications:
     email: fabien.marty@gmail.com
 services:

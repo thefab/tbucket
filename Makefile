@@ -34,4 +34,7 @@ upload:
 coverage:
 	cd tests && coverage run `which nosetests` && coverage html --include='*/tbucket/tbucket/*' --omit='test_*'
 
+coveralls:
+	cd tests && nosetests --with-coverage --cover-package=tbucket && ../.coveralls.sh
+
 release: test coverage clean upload clean 
