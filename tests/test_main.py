@@ -8,8 +8,7 @@ from tornado import gen
 from tornado.ioloop import IOLoop
 
 from tbucket.main import get_app as tbucket_get_app
-from tbucket.model import TObjectManager
-from tbucket.main import main, get_ioloop, check_options, CliException
+from tbucket.main import main, get_ioloop
 from tbucket.config import Config
 
 
@@ -22,11 +21,6 @@ class MainTestCase(tornado.testing.AsyncHTTPTestCase):
         super(MainTestCase, self).setUp()
         self.port = tornado.testing.bind_unused_port()[1]
 
-    def tearDown(self):
-        Config.uid_prefix = ""
-        TObjectManager.destroy_instance()
-        super(MainTestCase, self).tearDown()
-
     def get_new_ioloop(self):
         return get_ioloop()
 
@@ -35,11 +29,3 @@ class MainTestCase(tornado.testing.AsyncHTTPTestCase):
         Config.port = self.port
         main(start_ioloop=False, parse_cli=False)
         yield gen.Task(IOLoop.instance().add_timeout, time.time() + 3)
-
-    def test_check_options(self):
-        Config.uid_prefix = "foobar"
-        check_options()
-        Config.uid_prefix = ""
-        check_options()
-        Config.uid_prefix = "foo bar"
-        self.assertRaises(CliException, check_options)

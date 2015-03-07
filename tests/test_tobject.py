@@ -6,9 +6,7 @@ from tornado.httpclient import HTTPRequest
 
 import tbucket
 from tbucket.main import get_app as tbucket_get_app
-from tbucket.model import TObjectManager
-from tbucket.config import Config
-from support import test_redis_or_raise_skiptest, make_random_body
+from support import make_random_body
 
 
 class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
@@ -22,9 +20,8 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
     def get_new_ioloop(self):
         return tornado.ioloop.IOLoop.instance()
 
-    def setUp(self, storage_method="bytesio"):
+    def setUp(self):
         super(TBucketTestCase, self).setUp()
-        Config.storage_method = storage_method
         headers = {}
         headers[tbucket.LIFETIME_HEADER] = "3600"
         headers["%sFooBar" % tbucket.EXTRA_HEADER_PREFIX] = "foobar"
@@ -42,7 +39,6 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         self.http_client.fetch(req, self.stop)
         response = self.wait()
         self.assertEqual(response.code, 204)
-        TObjectManager.destroy_instance()
         super(TBucketTestCase, self).tearDown()
 
     def test_delete(self):
@@ -102,25 +98,3 @@ class TBucketTestCase(tornado.testing.AsyncHTTPTestCase):
         response = self.wait()
         self.assertEqual(response.code, 200)
         self.assertEqual(self.body, response.body)
-
-
-class TBucketRedisTestCase(TBucketTestCase):
-
-    def setUp(self):
-        test_redis_or_raise_skiptest()
-        super(TBucketRedisTestCase, self).setUp(storage_method="redis")
-
-
-class TBucketDummyTestCase(TBucketTestCase):
-
-    def setUp(self):
-        super(TBucketDummyTestCase, self).setUp(storage_method="dummy")
-
-    def test_get(self):
-        super(TBucketDummyTestCase, self).test_get(test_empty_body=True)
-
-    def test_get_autodelete1(self):
-        pass
-
-    def test_get_autodelete0(self):
-        pass

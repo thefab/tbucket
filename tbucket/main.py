@@ -8,7 +8,6 @@ import functools
 import logging
 import signal
 import time
-import re
 import tornado.ioloop
 import tornado.web
 import tornado.gen
@@ -18,25 +17,12 @@ import tornado.options
 from tbucket.hello_handler import HelloHandler
 from tbucket.tobjects_handler import TObjectsHandler
 from tbucket.tobject_handler import TObjectHandler
-from tbucket.model import TObjectManager
 from tbucket.config import Config
 import tbucket
 
 
 class CliException(Exception):
     pass
-
-
-@tornado.gen.coroutine
-def garbage_collection():
-    '''
-    @summary: function called by tornado/ioloop every n second
-
-    It's used for garbage collection
-    '''
-    logging.debug("Starting garbage collection...")
-    n = yield TObjectManager.get_instance().garbage_collect()
-    logging.debug("%i records garbage collected", n)
 
 
 def get_app():
@@ -62,10 +48,6 @@ def get_ioloop():
     @summary: returns a configured tornado ioloop
     '''
     iol = tornado.ioloop.IOLoop.instance()
-    callback = tornado.ioloop.PeriodicCallback(garbage_collection,
-                                               Config.gc_interval * 1000,
-                                               iol)
-    callback.start()
     return iol
 
 
@@ -97,18 +79,12 @@ def stop_loop(loop):
     logging.info("Main loop stopped !")
 
 
-def check_options():
-    if not re.match("^\w*$", Config.uid_prefix):
-        raise CliException("bad uid_prefix, must match with \w* regexp")
-
-
 def main(start_ioloop=True, parse_cli=True):
     '''
     @summary: main function (starts the daemon)
     '''
     if parse_cli:
         tornado.options.parse_command_line()
-    check_options()
     application = get_app()
     server = HTTPServer(application)
     server.listen(Config.port)
@@ -121,7 +97,6 @@ def main(start_ioloop=True, parse_cli=True):
             iol.start()
         except KeyboardInterrupt:
             stop_server(server, None)
-        TObjectManager.destroy_instance()
         logging.info("tbucket daemon is stopped !")
 
 

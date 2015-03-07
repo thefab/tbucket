@@ -4,52 +4,65 @@
 # This file is part of tbucket daemon released under the MIT license.
 # See the LICENSE file for more information.
 
+import json
 import tornado.web
 import tornado.gen
 from tornado.web import stream_request_body
 from tornado.web import HTTPError
+from tornadis import WriteBuffer
 
 import tbucket
-from tbucket.model import TObjectManager
-from tbucket.utils import get_base_url_from_request
+from tbucket.utils import get_base_url_from_request, make_uid
 from tbucket.config import Config
+from tbucket.redis import get_redis_pool, new_redis_pipeline
 
 
 @stream_request_body
 class TObjectsHandler(tornado.web.RequestHandler):
 
-    manager = None
-    write_page_size = None
-    uid_prefix = None
-    tobject = None
-    parts = None
-    buffer_length = None
+    buffer_max_size = None
+    redis_prefix = None
+    redis_pool = None
+    uid = None
+    key = None
     __buffer = None
+    __append = False
 
     def initialize(self, *args, **kwargs):
-        self.manager = TObjectManager.get_instance()
-        self.parts = []
-        self.buffer_length = 0
-        self.write_page_size = Config.write_page_size
-        self.uid_prefix = Config.uid_prefix
+        self.buffer_max_size = Config.buffer_max_size
+        self.redis_prefix = Config.redis_prefix
+        self.default_lifetime = Config.default_lifetime
+        self.__append = False
+        self.redis_pool = get_redis_pool()
 
     @tornado.gen.coroutine
     def post(self):
-        if self.buffer_length > 0:
-            yield self._data_flush()
-        yield self.tobject.flush()
-        self.manager.add_object(self.tobject)
+        yield self._data_flush()
         self.set_status(201)
         base_url = get_base_url_from_request(self.request)
-        uid = "%s%s" % (self.uid_prefix, self.tobject.uid)
-        tobject_path = self.reverse_url(tbucket.TOBJECT_URL_SPEC_NAME, uid)
+        tobject_path = self.reverse_url(tbucket.TOBJECT_URL_SPEC_NAME,
+                                        self.uid)
         tobject_url = "%s%s" % (base_url, tobject_path)
         self.add_header('Location', tobject_url)
         self.finish()
 
     @tornado.gen.coroutine
     def delete(self):
-        yield self.manager.purge()
+        pattern = "%s*" % self.redis_prefix
+        index = "0"
+        with (yield self.redis_pool.connected_client()) as client:
+            while True:
+                result = yield client.call("SCAN", index, "MATCH", pattern)
+                if result is not None and len(result) != 2:
+                    raise tornado.web.HTTPError(status_code=500)
+                if len(result[1]) > 0:
+                    pipeline = new_redis_pipeline()
+                    for key in result[1]:
+                        pipeline.stack_call("DEL", key)
+                    yield client.call(pipeline)
+                index = result[0]
+                if index == "0":
+                    break
         self.set_status(204)
         self.finish()
 
@@ -67,7 +80,7 @@ class TObjectsHandler(tornado.web.RequestHandler):
         for key, value in self.request.headers.items():
             if key.startswith(tbucket.EXTRA_HEADER_PREFIX):
                 new_key = key[len(tbucket.EXTRA_HEADER_PREFIX):]
-                out[new_key] = value
+                out[new_key] = value.strip()
         return out
 
     def prepare(self):
@@ -82,24 +95,32 @@ class TObjectsHandler(tornado.web.RequestHandler):
         pass
 
     def prepare_post_request(self):
+        self.uid = make_uid()
+        self.key = "%s%s" % (self.redis_prefix, self.uid)
         lifetime = self._get_requested_lifetime()
         extra_headers = self._get_requested_extra_headers()
         if lifetime is None:
-            lifetime = Config.default_lifetime
-        self.tobject = self.manager.make_object(lifetime=lifetime,
-                                                extra_headers=extra_headers)
+            lifetime = self.default_lifetime
+        serialized_headers = json.dumps(extra_headers)
+        self.__buffer = WriteBuffer()
+        self.__buffer.append("%i\r\n" % len(serialized_headers))
+        self.__buffer.append(serialized_headers)
+        self.__buffer.append("\r\n")
 
     @tornado.gen.coroutine
     def _data_flush(self):
-        yield self.tobject.append(b"".join(self.parts))
-        self.parts = []
-        self.buffer_length = 0
+        if len(self.__buffer) > 0:
+            with (yield self.redis_pool.connected_client()) as client:
+                if self.__append:
+                    yield client.call("APPEND", self.key, self.__buffer)
+                else:
+                    yield client.call("SET", self.key, self.__buffer)
+                    self.__append = True
+                self.__buffer.clear()
 
     @tornado.gen.coroutine
     def data_received(self, data):
         if self.request.method == 'POST':
-            data_len = len(data)
-            self.parts.append(data)
-            self.buffer_length = self.buffer_length + data_len
-            if self.buffer_length >= self.write_page_size:
+            self.__buffer.append(data)
+            if len(self.__buffer) > self.buffer_max_size:
                 yield self._data_flush()

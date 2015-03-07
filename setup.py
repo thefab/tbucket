@@ -5,7 +5,6 @@
 # See the LICENSE file for more information.
 
 from setuptools import setup, find_packages
-import tbucket
 
 DESCRIPTION = "TBUCKET is a temporary bucket http/rest daemon build on Tornado"
 
@@ -21,7 +20,7 @@ with open('pip-requirements.txt') as reqs:
                                                      line.startswith('--'))]
 setup(
     name='tbucket',
-    version=tbucket.__version__,
+    version="0.0.1",
     author="Fabien MARTY",
     author_email="fabien.marty@gmail.com",
     url="https://github.com/thefab/tbucket",

@@ -6,53 +6,70 @@
 
 import tornado.web
 import tornado.gen
+import json
 
-from tbucket.model import TObjectManager
+from tbucket.redis import get_redis_pool
 from tbucket.config import Config
 
 
 class TObjectHandler(tornado.web.RequestHandler):
 
-    manager = None
+    redis_pool = None
+    redis_prefix = None
+    buffer_max_size = None
 
     def initialize(self, *args, **kwargs):
-        self.manager = TObjectManager.get_instance()
+        self.redis_pool = get_redis_pool()
+        self.redis_prefix = Config.redis_prefix
+        self.buffer_max_size = Config.buffer_max_size
 
-    def get_object_or_raise_404(self, uid):
-        tobject = self.manager.get_object_by_uid(uid)
-        if tobject is None:
-            raise tornado.web.HTTPError(404)
-        return tobject
+    def get_key(self, uid):
+        return "%s%s" % (self.redis_prefix, uid)
 
     @tornado.gen.coroutine
     def get(self, uid):
-        tobject = self.get_object_or_raise_404(uid)
-        yield tobject.seek0()
-        self.set_status(200)
-        for name, value in tobject.extra_headers.items():
-            self.set_header(name, value)
-        while True:
-            tmp = yield tobject.read(Config.read_page_size)
-            if len(tmp) == 0:
-                break
-            self.write(tmp)
-            yield self.flush()
         autodelete = self.get_query_argument("autodelete", default="0",
                                              strip=True)
-        if autodelete == "1":
-            yield self._delete(uid)
+        start = 0
+        key = self.get_key(uid)
+        with (yield self.redis_pool.connected_client()) as client:
+            while True:
+                end = start + self.buffer_max_size - 1
+                chunk = yield client.call("GETRANGE", key, start, end)
+                chunk_size = len(chunk)
+                if chunk_size == 0:
+                    if start == 0:
+                        raise tornado.web.HTTPError(404)
+                    else:
+                        break
+                if start == 0:
+                    tmp = chunk.split("\r\n", 1)
+                    if len(tmp) != 2:
+                        raise tornado.web.HTTPError(500)
+                    headers_size = int(tmp[0])
+                    headers = tmp[1][0:headers_size]
+                    decoded_headers = json.loads(headers)
+                    for name, value in decoded_headers.items():
+                        self.set_header(name, value)
+                    # FIXME: minimize copy
+                    chunk = tmp[1][headers_size + 2:]
+                    self.set_status(200)
+                self.write(chunk)
+                start = start + chunk_size
+                yield self.flush()
+            if autodelete == "1":
+                yield self._delete(uid, client)
         self.finish()
 
-    @tornado.gen.coroutine
-    def _delete(self, uid):
-        tobject = self.get_object_or_raise_404(uid)
-        res = yield self.manager.remove_object_and_free_it(tobject)
-        raise tornado.gen.Return(res)
+    def _delete(self, uid, client):
+        key = self.get_key(uid)
+        return client.call("DEL", key)
 
     @tornado.gen.coroutine
     def delete(self, uid):
-        res = yield self._delete(uid)
-        if res is None:
-            raise tornado.web.HTTPError(404)
-        self.set_status(204)
-        self.finish()
+        with (yield self.redis_pool.connected_client()) as client:
+            res = yield self._delete(uid, client)
+            if res != 1:
+                raise tornado.web.HTTPError(404)
+            self.set_status(204)
+            self.finish()
