@@ -1,4 +1,4 @@
 tornado==4.1
-tornadis==0.2.0
+tornadis==0.2.2
 six==1.9.0
 toro==0.8
